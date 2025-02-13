@@ -1,13 +1,23 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 
 const App = () => {
   const [val, setval] = useState('');
   const [data, setdata] = useState([]);
   const [editid, seteditid] = useState(null);
-  const [edit,setedit]=useState(true);
-  const[donecnt,setdonecnt]=useState(0);
-  const [totalcnt,settotalcnt]=useState(0);
+  const [edit, setedit] = useState(true);
+  const [donecnt, setdonecnt] = useState(0);
   const ipref = useRef(null);
+
+  // Load tasks from local storage when the app starts
+  useEffect(() => {
+    const savedData = JSON.parse(localStorage.getItem("tasks"));
+    if (savedData) setdata(savedData);
+  }, []);
+
+  // Save tasks to local storage whenever `data` changes
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(data));
+  }, [data]);
 
   function handleip(e) {
     setval(e.target.value);
@@ -23,37 +33,40 @@ const App = () => {
     seteditid(idx);
     setedit(false);
     setTimeout(() => {
-      ipref.current?.focus();  // Auto-focus on the input field after state update
+      ipref.current?.focus();
     }, 0);
   }
-  function donefx(idx){
-    if (data[idx].trim() === "") {
-      alert("Task cannot be empty");
+
+  function donefx(idx) {
+    if (data[idx] === '') {
+      alert("No empty");
       return;
     }
-    seteditid(null) 
-    setedit(true)
-  
+    seteditid(null);
+    setedit(true);
   }
-  function remove(idx) {
-    setdata(data.filter((_, i) => i !== idx));
-  }
-  function toggler(e){
-if(e.target.checked){
-  setdonecnt((prev)=>prev+1);
-  console.log(donecnt)
-}
 
+  function remove(idx) {
+    const updatedData = data.filter((_, index) => index !== idx);
+    setdata(updatedData);
   }
-  
+
+  function toggler(e) {
+    if (e.target.checked) {
+      setdonecnt((prev) => prev + 1);
+    } else {
+      setdonecnt((prev) => prev - 1);
+    }
+  }
 
   return (
     <div>
       <input type="text" value={val} placeholder="Enter a task" onChange={handleip} />
       <button onClick={handleaddtaskbtn}>Add Task</button>
+      <p>Completed Tasks: {donecnt}</p>
       {data.map((val, idx) => (
         <div key={idx}>
-          <input type="checkbox" onChange={(e)=>toggler(e)}></input>
+          <input type="checkbox" onChange={(e) => toggler(e)} />
           {editid === idx ? (
             <div>
               <input
@@ -65,13 +78,13 @@ if(e.target.checked){
                   setdata(newdata);
                 }}
               />
-         {edit === false && <button onClick={()=>donefx(idx)}>Done</button>}
+              {edit === false && <button onClick={() => donefx(idx)}>Done</button>}
             </div>
           ) : (
             <span>{val}</span>
           )}
-        {edit === true && <button onClick={() => edittask(idx)}>Edit</button>}
-        <button onClick={()=>remove(idx)}>Remove</button>
+          {edit === true && <button onClick={() => edittask(idx)}>Edit</button>}
+          <button onClick={() => remove(idx)}>Remove</button>
         </div>
       ))}
     </div>
