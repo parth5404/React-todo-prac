@@ -10,8 +10,8 @@ const App = () => {
 
   // Load tasks from local storage when the app starts
   useEffect(() => {
-    const savedData = JSON.parse(localStorage.getItem("tasks"));
-    if (savedData) setdata(savedData);
+    const savedData = localStorage.getItem("tasks");
+    if (savedData) setdata(JSON.parse(savedData) || []);
   }, []);
 
   // Save tasks to local storage whenever `data` changes
@@ -24,8 +24,17 @@ const App = () => {
   }
 
   function handleaddtaskbtn() {
-    if (val !== '') setdata((prev) => [...prev, val]);
+    if (val !== '') {
+    for(let i=0;i<data.length;i++){
+      if(val===data[i]){
+        alert("masti nhi duplicate")
+        return ;
+      }
+    }  
+      setdata((prev) => [...prev, val]);
+    }
     else alert('Valid Task Give');
+   
     setval('');
   }
 
@@ -58,9 +67,22 @@ const App = () => {
       setdonecnt((prev) => prev - 1);
     }
   }
+  function checkdup(value, idx, data) {
+    for(let i=0;i<data.length;i++){
+      if(data[i]===value.trim() && i!==idx){
+        alert("masti nhi")
+        return false;
+      }
+    }
+    return true;
+  }
+  
 
   return (
     <div>
+      <input type="text" name="search"></input>
+      <br></br>
+      <br></br>
       <input type="text" value={val} placeholder="Enter a task" onChange={handleip} />
       <button onClick={handleaddtaskbtn}>Add Task</button>
       <p>Completed Tasks: {donecnt}</p>
@@ -74,8 +96,10 @@ const App = () => {
                 value={val}
                 onChange={(e) => {
                   let newdata = [...data];
-                  newdata[idx] = e.target.value;
-                  setdata(newdata);
+                  if (checkdup(e.target.value, idx, newdata)) {
+                    newdata[idx] = e.target.value;
+                    setdata(newdata);
+                  }
                 }}
               />
               {edit === false && <button onClick={() => donefx(idx)}>Done</button>}
